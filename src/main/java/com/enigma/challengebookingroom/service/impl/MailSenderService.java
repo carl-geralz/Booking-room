@@ -1,5 +1,12 @@
 package com.enigma.challengebookingroom.service.impl;
 
+import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import com.enigma.challengebookingroom.constant.APIUrl;
 import com.enigma.challengebookingroom.constant.ConstantReservationStatus;
 import com.enigma.challengebookingroom.dto.request.MailSenderRequest;
@@ -10,12 +17,6 @@ import com.mailjet.client.MailjetRequest;
 import com.mailjet.client.MailjetResponse;
 import com.mailjet.client.errors.MailjetException;
 import com.mailjet.client.resource.Emailv31;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 @Service
 public class MailSenderService {
@@ -29,7 +30,6 @@ public class MailSenderService {
 
     String EMAIL_ADMIN;
 
-    EmployeeService employeeService;
 
     public MailSenderService(@Value("${challengebookingroom.API_KEY_PUBLIC}") String API_PUBLIC_KEY,
                              @Value("${challengebookingroom.API_KEY_SECRET}") String API_SECRET_KEY,
@@ -42,7 +42,6 @@ public class MailSenderService {
         this.EMAIL_SENDER = EMAIL_SENDER;
         this.EMAIL_ADMIN = EMAIL_ADMIN;
         this.URL_SERVER = URL_SERER;
-        this.employeeService = employeeService;
     }
 
     public String create(MailSenderRequest mailSenderRequest) throws MailjetException {

@@ -1,5 +1,14 @@
 package com.enigma.challengebookingroom.service.impl;
 
+import java.time.Instant;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -10,15 +19,8 @@ import com.enigma.challengebookingroom.dto.response.JWTClaims;
 import com.enigma.challengebookingroom.entity.User;
 import com.enigma.challengebookingroom.repository.UserRepository;
 import com.enigma.challengebookingroom.service.JwtService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 ///@RequiredArgsConstructor
@@ -27,7 +29,6 @@ public class JwtServiceImpl implements JwtService {
     private final String JWT_SECRET;
     private final String JWT_ISSUE;
     private final Long JWT_EXPIRED_AT;
-    private final UserRepository userRepository;
 
     public JwtServiceImpl(@Value(value = "${challengebookingroom.jwt.secret_key}") String JWT_SECRET,
                           @Value(value = "${challengebookingroom.jwt.issuer}") String JWT_ISSUE,
@@ -36,7 +37,6 @@ public class JwtServiceImpl implements JwtService {
         this.JWT_SECRET = JWT_SECRET;
         this.JWT_ISSUE = JWT_ISSUE;
         this.JWT_EXPIRED_AT = JWT_EXPIRED_AT;
-        this.userRepository = userAccountRepository;
     }
 
     @Override
@@ -59,7 +59,6 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public Boolean verifyToken(String token) {
-        DecodedJWT decodedJWT;
         try {
             Algorithm algorithm = Algorithm.HMAC512(JWT_SECRET);
             JWTVerifier verifier = JWT.require(algorithm)

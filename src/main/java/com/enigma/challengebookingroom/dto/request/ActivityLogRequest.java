@@ -13,9 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * DTO for {@link com.enigma.challengebookingroom.entity.ActivityLog}
- */
 @Getter
 @Setter
 @AllArgsConstructor

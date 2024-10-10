@@ -1,14 +1,18 @@
 package com.enigma.challengebookingroom.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.*;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * DTO for {@link com.enigma.challengebookingroom.entity.PeriodicReport}
- */
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 @Getter
 @Setter
 @AllArgsConstructor

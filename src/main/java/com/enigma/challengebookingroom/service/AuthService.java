@@ -10,5 +10,6 @@ public interface AuthService {
     RegisterResponse register(RegisterRequest register);
 
     LoginResponse login(LoginRequest login);
+    
     RegisterResponse addRole(AddRoleRequest request);
 }

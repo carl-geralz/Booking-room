@@ -1,21 +1,8 @@
 package com.enigma.challengebookingroom.service.impl;
 
-import com.enigma.challengebookingroom.constant.ConstantRole;
-import com.enigma.challengebookingroom.dto.request.*;
-import com.enigma.challengebookingroom.dto.response.Auth.LoginResponse;
-import com.enigma.challengebookingroom.dto.response.Auth.RegisterResponse;
-import com.enigma.challengebookingroom.dto.response.EmployeeResponse;
-import com.enigma.challengebookingroom.entity.Employee;
-import com.enigma.challengebookingroom.entity.Role;
-import com.enigma.challengebookingroom.entity.User;
-import com.enigma.challengebookingroom.repository.UserRepository;
-import com.enigma.challengebookingroom.service.AuthService;
-import com.enigma.challengebookingroom.service.EmployeeService;
-import com.enigma.challengebookingroom.service.JwtService;
-import com.enigma.challengebookingroom.service.RoleService;
-import com.enigma.challengebookingroom.util.ValidationUtils;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -28,8 +15,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.Optional;
+import com.enigma.challengebookingroom.constant.ConstantRole;
+import com.enigma.challengebookingroom.dto.request.AddRoleRequest;
+import com.enigma.challengebookingroom.dto.request.EmployeeRequest;
+import com.enigma.challengebookingroom.dto.request.LoginRequest;
+import com.enigma.challengebookingroom.dto.request.RegisterRequest;
+import com.enigma.challengebookingroom.dto.request.RoleRequest;
+import com.enigma.challengebookingroom.dto.response.Auth.LoginResponse;
+import com.enigma.challengebookingroom.dto.response.Auth.RegisterResponse;
+import com.enigma.challengebookingroom.dto.response.EmployeeResponse;
+import com.enigma.challengebookingroom.entity.Employee;
+import com.enigma.challengebookingroom.entity.Role;
+import com.enigma.challengebookingroom.entity.User;
+import com.enigma.challengebookingroom.repository.UserRepository;
+import com.enigma.challengebookingroom.service.AuthService;
+import com.enigma.challengebookingroom.service.EmployeeService;
+import com.enigma.challengebookingroom.service.JwtService;
+import com.enigma.challengebookingroom.service.RoleService;
+import com.enigma.challengebookingroom.util.ValidationUtils;
+
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -128,16 +134,9 @@ public class AuthServiceImpl implements AuthService {
 
         List<Role> roles = user.getRoles();
         switch (request.getRole().toLowerCase()) {
-            case "admin":
-            case "administrator":
-                roles.add(roleService.getOrSave(ConstantRole.ROLE_ADMINISTRATOR));
-                break;
-            case "ga":
-            case "general affair":
-                roles.add(roleService.getOrSave(ConstantRole.ROLE_GENERAL_AFFAIR));
-                break;
-            default:
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid in role");
+            case "admin", "administrator" -> roles.add(roleService.getOrSave(ConstantRole.ROLE_ADMINISTRATOR));
+            case "ga", "general affair" -> roles.add(roleService.getOrSave(ConstantRole.ROLE_GENERAL_AFFAIR));
+            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid in role");
         }
         user.setRoles(roles);
         userRepository.saveAndFlush(user);
