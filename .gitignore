@@ -34,3 +34,4 @@ build/
 
 ### JARs ###
 .jar
+.fake
