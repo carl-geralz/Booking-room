@@ -1,0 +1,7 @@
+FROM docker.elastic.co/beats/filebeat:8.15.2
+
+# Copy your custom filebeat configuration into the container
+COPY filebeat.yml /usr/share/filebeat/filebeat.yml
+
+# Set filebeat to run as root so it can read all log files
+USER root
