@@ -101,7 +101,7 @@ services:
     networks:
       - app-network
 
-  zrok:
+  spring-zrok:
     image: openziti/zrok
     restart: "no"
     volumes:
@@ -114,13 +114,43 @@ services:
       - |
         zrok enable RBgZVgsh5nNn &&
         zrok share public http://spring-app:8081 --headless
-    container_name: zrok
+    container_name: spring-zrok
     depends_on:
       - spring-app
     networks:
       - app-network
 
-  grafana-share:
+  # grafana-zrok:
+  #   image: openziti/zrok
+  #   restart: "no"
+  #   volumes:
+  #     - $HOME/.zrok:/.zrok
+  #   environment:
+  #     PFXLOG_NO_JSON: "true"
+  #   entrypoint: 
+  #     - /bin/sh
+  #     - -c
+  #     - |
+  #       zrok enable RBgZVgsh5nNn &&
+  #       zrok share public http://grafana:3000 --headless
+  #   container_name: grafana-zrok
+  #   depends_on:
+  #     - grafana
+  #   networks:
+  #     - app-network
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    ports:
+      - "8082:8082"  # Jenkins UI on port 8080
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    environment:
+      JENKINS_OPTS: "--httpPort=8082"
+    networks:
+      - app-network
+
+  jenkins-zrok:
     image: openziti/zrok
     restart: "no"
     volumes:
@@ -132,12 +162,14 @@ services:
       - -c
       - |
         zrok enable RBgZVgsh5nNn &&
-        zrok share public http://grafana:3000 --headless
-    container_name: grafana-share
+        zrok share public http://jenkins:8082 --headless
+    container_name: jenkins-zrok
     depends_on:
-      - grafana
+      - jenkins
     networks:
       - app-network
+
+# TODO: UNIFY THESE SERVICES INTO 1 PORT USING NGINX
 
 networks:
   app-network:
@@ -145,3 +177,4 @@ networks:
 
 volumes:
   pgdata:
+  jenkins_home:
