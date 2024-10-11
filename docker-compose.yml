@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # container_name: spring-app
+    container_name: spring-app
     networks:
       - app-network
     environment:
@@ -52,10 +52,11 @@ services:
       - 8081:8081
     volumes:
       - ./logs:/var/logs/challenge-booking-room
-    # restart: unless-stopped
+    restart: unless-stopped
+
   postgres:
     image: postgres:14
-    # container_name: postgres
+    container_name: postgres
     restart: always
     environment:
       POSTGRES_DB: challengebookingroom_db
@@ -63,8 +64,6 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
-    # ports:
-    #   - 5432:5432
     networks:
       - app-network
     expose:
@@ -72,17 +71,23 @@ services:
 
   prometheus:
     image: prom/prometheus
-    # container_name: prometheus
+    container_name: prometheus
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
+    networks:
+      - app-network
+    restart: unless-stopped
   
   node-exporter:
     image: prom/node-exporter
-    # container_name: node-exporter
+    container_name: node-exporter
     ports:
       - "9100:9100"
+    networks:
+      - app-network
+    restart: unless-stopped
   
   grafana:
     image: grafana/grafana
@@ -93,8 +98,11 @@ services:
       - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: 'admin'
+    networks:
+      - app-network
+    restart: unless-stopped
 
-  zrok:
+  spring-zrok:
     image: openziti/zrok
     restart: "no"
     volumes:
@@ -107,11 +115,78 @@ services:
       - |
         zrok enable RBgZVgsh5nNn &&
         zrok share public http://spring-app:8081 --headless
-    container_name: zrok
+    container_name: spring-zrok
     depends_on:
       - spring-app
     networks:
       - app-network
+
+  grafana-zrok:
+    image: openziti/zrok
+    restart: "no"
+    volumes:
+      - $HOME/.zrok:/.zrok
+    environment:
+      PFXLOG_NO_JSON: "true"
+    entrypoint: 
+      - /bin/sh
+      - -c
+      - |
+        zrok enable RBgZVgsh5nNn &&
+        zrok share public http://grafana:3000 --headless
+    container_name: grafana-zrok
+    depends_on:
+      - grafana
+    networks:
+      - app-network
+
+  trufflehog:
+    build:
+      context: .
+      dockerfile: Dockerfile.trufflehog
+    volumes:
+      - ./trufflehog_reports:/app/trufflehog_reports
+    depends_on:
+      - spring-app
+    command:
+      ["sh", "-c", "trufflehog --repo_path . --json https://github.com/carl-geralz/Booking-room > /app/trufflehog_reports/trufflehog_report.json"]
+
+    # restart: 
+    #   always
+
+  # nginx:
+  #   image: nginx:latest
+  #   container_name: nginx
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf
+  #   ports:
+  #     - "80:80"
+  #   networks:
+  #     - app-network
+  #   depends_on:
+  #     - spring-app
+  #     - prometheus
+  #     - grafana
+  #   restart: unless-stopped
+
+  # nginx-zrok:
+  #   image: openziti/zrok
+  #   restart: "no"
+  #   volumes:
+  #     - $HOME/.zrok:/.zrok
+  #   environment:
+  #     PFXLOG_NO_JSON: "true"
+  #   entrypoint: 
+  #     - /bin/sh
+  #     - -c
+  #     - |
+  #       zrok enable RBgZVgsh5nNn &&
+  #       zrok share public http://nginx --headless
+  #   container_name: nginx-zrok
+  #   depends_on:
+  #     - nginx
+  #   networks:
+  #     - app-network
 
 networks:
   app-network:

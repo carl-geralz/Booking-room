@@ -1,8 +1,5 @@
 package com.enigma.challengebookingroom.security;
 
-import com.enigma.challengebookingroom.constant.APIUrl;
-import jakarta.servlet.DispatcherType;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -12,6 +9,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.enigma.challengebookingroom.constant.APIUrl;
+
+import jakarta.servlet.DispatcherType;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
@@ -42,6 +44,7 @@ public class WebSecurityConfigure {
                                     .requestMatchers(APIUrl.RESERVATION + APIUrl.PATH_STATUS + APIUrl.PATH_VAR_ID).permitAll()
                                     .requestMatchers(APIUrl.RESERVATION + APIUrl.SUCCESS).permitAll()
                                     .requestMatchers(APIUrl.RESERVATION + APIUrl.ALREADY_CLICK).permitAll()
+                                    .requestMatchers("/j_spring_security_check").permitAll()
                                     .requestMatchers(
                                             "/v2/api-docs",
                                             "/v3/api-docs",
