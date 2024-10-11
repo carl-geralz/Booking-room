@@ -34,4 +34,8 @@ build/
 
 ### JARs ###
 .jar
+.war
 .fake
+
+# TruffleHog
+trufflehog_reports/
