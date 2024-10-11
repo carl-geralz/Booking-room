@@ -7,44 +7,44 @@ services:
     networks:
       - app-network
     environment:
-      SPRING_APPLICATION_NAME: challenge-booking-room
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/challengebookingroom_db
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_APPLICATION_NAME: ${SPRING_APPLICATION_NAME}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
 
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
-      SPRING_JPA_OPEN_IN_VIEW: "true"
-      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
-      SPRING_JPA_PROPERTIES_HIBERNATE_HIGHLIGHT_SQL: "true"
-      SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE: Asia/Jakarta
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL}
+      SPRING_JPA_OPEN_IN_VIEW: ${SPRING_JPA_OPEN_IN_VIEW}
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: ${SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL}
+      SPRING_JPA_PROPERTIES_HIBERNATE_HIGHLIGHT_SQL: ${SPRING_JPA_PROPERTIES_HIBERNATE_HIGHLIGHT_SQL}
+      SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE: ${SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE}
 
-      SPRING_JACKSON_TIME_ZONE: Asia/Jakarta
+      SPRING_JACKSON_TIME_ZONE: ${SPRING_JACKSON_TIME_ZONE}
 
       SERVER_PORT: 8081
-      SERVER_ERROR_INCLUDE_STACKTRACE: never
+      SERVER_ERROR_INCLUDE_STACKTRACE: ${SERVER_ERROR_INCLUDE_STACKTRACE}
 
-      JWT_SECRET: Y2hhbGxlbmdlLWJvb2tpbmctcm9vbQ==
-      JWT_ISSUER: Enigma
-      JWT_EXPIRATION: 86400
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
 
-      USERNAME_SUPER_ADMIN: superadmin
-      PASSWORD_SUPER_ADMIN: c3VwZXJhZG1pbnJvb20=
+      USERNAME_SUPER_ADMIN: ${USERNAME_SUPER_ADMIN}
+      PASSWORD_SUPER_ADMIN: ${PASSWORD_SUPER_ADMIN}
 
       # Prometheus and Monitoring
-      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: prometheus
-      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: ${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE}
+      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: ${MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED}
 
       # Mail-Sender config
-      API_KEY_PUBLIC: e06998b5898e775f0c82335db2e5798e
-      API_KEY_SECRET: ce772ea24e8d90aa0cc18d43a5bb0a8e
-      API_MAIL_SENDER: razahdedenginanjar@gmail.com
-      API_MAIL_ADMIN: ginanjar.razah24@gmail.com
-      API_URL_SERVER: http://spring-app:8081
+      API_KEY_PUBLIC: ${API_KEY_PUBLIC}
+      API_KEY_SECRET: ${API_KEY_SECRET}
+      API_MAIL_SENDER: ${API_MAIL_SENDER}
+      API_MAIL_ADMIN: ${API_MAIL_ADMIN}
+      API_URL_SERVER: ${API_URL_SERVER}
 
       # Swagger config
-      SPRINGDOC_SWAGGER_UI_PATH: /swagger-ui.html
+      SPRINGDOC_SWAGGER_UI_PATH: ${SPRINGDOC_SWAGGER_UI_PATH}
 
     depends_on:
       - postgres
@@ -121,24 +121,25 @@ services:
     networks:
       - app-network
 
-  grafana-zrok:
-    image: openziti/zrok
-    restart: "no"
-    volumes:
-      - $HOME/.zrok:/.zrok
-    environment:
-      PFXLOG_NO_JSON: "true"
-    entrypoint: 
-      - /bin/sh
-      - -c
-      - |
-        zrok enable RBgZVgsh5nNn &&
-        zrok share public http://grafana:3000 --headless
-    container_name: grafana-zrok
-    depends_on:
-      - grafana
-    networks:
-      - app-network
+  # UNCOMMENT ME TO ACCESS GRAFANA
+  # grafana-zrok:
+  #   image: openziti/zrok
+  #   restart: "no"
+  #   volumes:
+  #     - $HOME/.zrok:/.zrok
+  #   environment:
+  #     PFXLOG_NO_JSON: "true"
+  #   entrypoint: 
+  #     - /bin/sh
+  #     - -c
+  #     - |
+  #       zrok enable RBgZVgsh5nNn &&
+  #       zrok share public http://grafana:3000 --headless
+  #   container_name: grafana-zrok
+  #   depends_on:
+  #     - grafana
+  #   networks:
+  #     - app-network
 
   trufflehog:
     build:
@@ -188,8 +189,75 @@ services:
   #   networks:
   #     - app-network
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+    networks:
+      - elk
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.15.2
+    container_name: logstash
+    volumes:
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "5044:5044"  # for receiving logs from Filebeat
+      - "5000:5000"  # for TCP input
+    networks:
+      - elk
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.2
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - elk
+
+  filebeat:
+    build:
+      context: .
+      dockerfile: Dockerfile.filebeat
+    container_name: filebeat
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+    depends_on:
+      - logstash
+    networks:
+      - elk
+      - app-network
+
+  kibana-zrok:
+    image: openziti/zrok
+    restart: "no"
+    volumes:
+      - $HOME/.zrok:/.zrok
+    environment:
+      PFXLOG_NO_JSON: "true"
+    entrypoint: 
+      - /bin/sh
+      - -c
+      - |
+        zrok enable RBgZVgsh5nNn &&
+        zrok share public http://kibana:5601 --headless
+    container_name: kibana-zrok
+    depends_on:
+      - kibana
+    networks:
+      - app-network
+
 networks:
   app-network:
+    driver: bridge
+  elk:
     driver: bridge
 
 volumes:

@@ -1,16 +1,9 @@
-# Use a Python image to install TruffleHog
 FROM python:3.9.20-slim-bookworm AS build.trufflehog
-
-# Install Git and TruffleHog
 RUN apt update && apt install -y git && \
     pip install truffleHog && \
     git config --global --add safe.directory /app && \
     mkdir -p /app/trufflehog_reports
-
-# Set the working directory inside the container
 WORKDIR /app
-
-# Copy the jar file from the Spring app (assuming it's named correctly)
 COPY . .
 
 # Define the command to run TruffleHog
