@@ -39,3 +39,7 @@ build/
 
 # TruffleHog
 trufflehog_reports/
+data/
+
+# Secrets
+.env
