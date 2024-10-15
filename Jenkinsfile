@@ -14,27 +14,27 @@ pipeline {
             }
         }
         
-        stage('Set up JDK 21') {
+        stage('Set up JDK 17') {
             steps {
                 script {
-                    def jdkHome = tool name: 'JDK 21', type: 'jdk'
+                    def jdkHome = tool name: 'JDK 17', type: 'jdk'
                     env.JAVA_HOME = jdkHome
                     sh "${jdkHome}/bin/java -version"
                 }
             }
         }
         
-        stage('Cache Maven dependencies') {
-            steps {
-                cache(path: '.m2/repository', key: 'maven-deps') {
-                    sh 'mvn dependency:go-offline'
-                }
-            }
-        }
+        // stage('Cache Maven dependencies') {
+        //     steps {
+        //         cache(path: '.m2/repository', key: 'maven-deps') {
+        //             sh 'mvn dependency:go-offline'
+        //         }
+        //     }
+        // }
         
         stage('Build the project') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh 'mvn clean package -DskipTests -DskipCompile'
             }
         }
         
