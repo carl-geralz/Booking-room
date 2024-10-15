@@ -3,14 +3,6 @@ pipeline {
 
     stages {
 
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    sh 'sudo apt update && sudo apt install -y zip unzip'
-                }
-            }
-        }
-
         stage('Install SDKMAN') {
             steps {
                 script {
@@ -78,18 +70,18 @@ pipeline {
             }
         }
 
-        stage('Analyze for vulnerabilities') {
-            when {
-                branch 'devops'
-            }
-            steps {
-                script {
-                    sh '''
-                    docker scout cves challenge-booking-room:latest --output sarif --file sarif.output.json
-                    '''
-                    archiveArtifacts 'sarif.output.json'
-                }
-            }
-        }
+        // stage('Analyze for vulnerabilities') {
+        //     when {
+        //         branch 'devops'
+        //     }
+        //     steps {
+        //         script {
+        //             sh '''
+        //             docker scout cves challenge-booking-room:latest --output sarif --file sarif.output.json
+        //             '''
+        //             archiveArtifacts 'sarif.output.json'
+        //         }
+        //     }
+        // }
     }
 }
