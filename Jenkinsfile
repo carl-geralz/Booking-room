@@ -23,7 +23,23 @@ pipeline {
                 }
             }
         }
-        
+
+        stage('Set up Maven 3.9.9') {
+            steps {
+                script {
+                    def jdkHome = tool name: 'maven'
+                }
+            }
+        }
+
+        stage('Set up Docker') {
+            steps {
+                script {
+                    def jdkHome = tool name: 'docker'
+                }
+            }
+        }
+
         // stage('Cache Maven dependencies') {
         //     steps {
         //         cache(path: '.m2/repository', key: 'maven-deps') {
