@@ -69,39 +69,6 @@ services:
     expose:
       - 5432
 
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-    networks:
-      - app-network
-    restart: unless-stopped
-  
-  node-exporter:
-    image: prom/node-exporter
-    container_name: node-exporter
-    ports:
-      - "9100:9100"
-    networks:
-      - app-network
-    restart: unless-stopped
-  
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    depends_on:
-      - prometheus
-    ports:
-      - "3000:3000"
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: 'admin'
-    networks:
-      - app-network
-    restart: unless-stopped
-
   spring-zrok:
     image: openziti/zrok
     restart: "no"
@@ -120,6 +87,63 @@ services:
       - spring-app
     networks:
       - app-network
+
+  jenkins-docker:
+    image: docker:dind
+    container_name: jenkins-docker
+    privileged: true
+    networks:
+      jenkins:
+        aliases:
+          - docker
+    environment:
+      DOCKER_TLS_CERTDIR: /certs
+    volumes:
+      - jenkins-docker-certs:/certs/client
+      - jenkins-data:/var/jenkins_home
+    ports:
+      - "2376:2376"
+
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
+    container_name: jenkins-blueocean
+    privileged: true
+    restart: on-failure
+    networks:
+      - jenkins
+    environment:
+      DOCKER_HOST: tcp://docker:2376
+      DOCKER_CERT_PATH: /certs/client 
+      DOCKER_TLS_VERIFY: 1
+    ports:
+      - "8080:8080"  
+      - "50000:50000" 
+    volumes:
+      - jenkins-data:/var/jenkins_home 
+      - jenkins-docker-certs:/certs/client:ro
+
+  # jenkins-zrok:
+  #   image: openziti/zrok
+  #   privileged: true
+  #   restart: "no"
+  #   volumes:
+  #     - $HOME/.zrok:/.zrok
+  #   environment:
+  #     PFXLOG_NO_JSON: "true"
+  #   entrypoint: 
+  #     - /bin/sh
+  #     - -c
+  #     - |
+  #       zrok enable RBgZVgsh5nNn &&
+  #       zrok share public http://jenkins:8080 --headless
+  #   container_name: jenkins-zrok
+  #   depends_on:
+  #     - jenkins
+  #   networks:
+  #     - jenkins
+  #     - app-network
 
   # UNCOMMENT ME TO ACCESS GRAFANA
   # grafana-zrok:
@@ -141,19 +165,18 @@ services:
   #   networks:
   #     - app-network
 
-  trufflehog:
-    build:
-      context: .
-      dockerfile: Dockerfile.trufflehog
-    volumes:
-      - ./trufflehog_reports:/app/trufflehog_reports
-    depends_on:
-      - spring-app
-    command:
-      ["sh", "-c", "trufflehog --repo_path . --json https://github.com/carl-geralz/Booking-room > /app/trufflehog_reports/trufflehog_report.json"]
-
-    # restart: 
-    #   always
+  # trufflehog:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.trufflehog
+  #   volumes:
+  #     - ./trufflehog_reports:/app/trufflehog_reports
+  #   depends_on:
+  #     - spring-app
+  #   command:
+  #     ["sh", "-c", "trufflehog --repo_path . --json https://github.com/carl-geralz/Booking-room > /app/trufflehog_reports/trufflehog_report.json"]
+  #   restart: 
+  #     always
 
   # nginx:
   #   image: nginx:latest
@@ -189,76 +212,114 @@ services:
   #   networks:
   #     - app-network
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.2
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-    container_name: elasticsearch
-    ports:
-      - "9200:9200"
-    networks:
-      - elk
+  # prometheus:
+  #   image: prom/prometheus
+  #   container_name: prometheus
+  #   volumes:
+  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  #   ports:
+  #     - "9090:9090"
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
+  
+  # node-exporter:
+  #   image: prom/node-exporter
+  #   container_name: node-exporter
+  #   ports:
+  #     - "9100:9100"
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
+  
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   depends_on:
+  #     - prometheus
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     GF_SECURITY_ADMIN_PASSWORD: 'admin'
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
 
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.15.2
-    container_name: logstash
-    volumes:
-      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
-    ports:
-      - "5044:5044"  # for receiving logs from Filebeat
-      - "5000:5000"  # for TCP input
-    networks:
-      - elk
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.15.2
+  #   environment:
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false
+  #   container_name: elasticsearch
+  #   ports:
+  #     - "9200:9200"
+  #   networks:
+  #     - elk
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.15.2
-    container_name: kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    networks:
-      - elk
+  # logstash:
+  #   image: docker.elastic.co/logstash/logstash:8.15.2
+  #   container_name: logstash
+  #   volumes:
+  #     - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+  #   ports:
+  #     - "5044:5044"  # for receiving logs from Filebeat
+  #     - "5000:5000"  # for TCP input
+  #   networks:
+  #     - elk
 
-  filebeat:
-    build:
-      context: .
-      dockerfile: Dockerfile.filebeat
-    container_name: filebeat
-    volumes:
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
-    depends_on:
-      - logstash
-    networks:
-      - elk
-      - app-network
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:8.15.2
+  #   container_name: kibana
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   ports:
+  #     - "5601:5601"
+  #   networks:
+  #     - elk
 
-  kibana-zrok:
-    image: openziti/zrok
-    restart: "no"
-    volumes:
-      - $HOME/.zrok:/.zrok
-    environment:
-      PFXLOG_NO_JSON: "true"
-    entrypoint: 
-      - /bin/sh
-      - -c
-      - |
-        zrok enable RBgZVgsh5nNn &&
-        zrok share public http://kibana:5601 --headless
-    container_name: kibana-zrok
-    depends_on:
-      - kibana
-    networks:
-      - app-network
+  # filebeat:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.filebeat
+  #   container_name: filebeat
+  #   volumes:
+  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #     - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+  #   depends_on:
+  #     - logstash
+  #   networks:
+  #     - elk
+  #     - app-network
+
+  # kibana-zrok:
+  #   image: openziti/zrok
+  #   restart: "no"
+  #   volumes:
+  #     - $HOME/.zrok:/.zrok
+  #   environment:
+  #     PFXLOG_NO_JSON: "true"
+  #   entrypoint: 
+  #     - /bin/sh
+  #     - -c
+  #     - |
+  #       zrok enable RBgZVgsh5nNn &&
+  #       zrok share public http://kibana:5601 --headless
+  #   container_name: kibana-zrok
+  #   depends_on:
+  #     - kibana
+  #   networks:
+  #     - app-network
 
 networks:
   app-network:
     driver: bridge
   elk:
     driver: bridge
+  jenkins:
+    driver: bridge
 
 volumes:
   pgdata:
+  jenkins_home:
+  jenkins-data: 
+  jenkins-docker-certs: 
