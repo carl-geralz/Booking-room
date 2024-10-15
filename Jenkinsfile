@@ -2,6 +2,14 @@ pipeline {
     agent any
 
     stages {
+        stage('Install SDKMAN') {
+            steps {
+                script {
+                    sh 'curl -s "https://get.sdkman.io" | bash'
+                }
+            }
+        }
+
         stage('Checkout repository') {
             steps {
                 checkout scm
