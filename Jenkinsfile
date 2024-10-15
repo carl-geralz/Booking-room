@@ -11,11 +11,13 @@ pipeline {
         stage('Set up JDK 21') {
             steps {
                 script {
-                    sh 'sdk install java 21-temurin'
-                    sh 'export JAVA_HOME=$(sdk home java 21-temurin)'
+                    def jdkHome = tool name: 'JDK 21', type: 'jdk'
+                    env.JAVA_HOME = jdkHome
+                    sh "${jdkHome}/bin/java -version"
                 }
             }
         }
+
 
         stage('Start PostgreSQL container') {
             steps {
