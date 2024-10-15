@@ -7,6 +7,11 @@ pipeline {
         POSTGRES_DB = 'challengebookingroom_db'
     }
     
+    tools {
+        jdk 'JDK 17'
+        maven 'MAVEN 3.9.9'
+    }
+    
     stages {
         stage('Checkout repository') {
             steps {
@@ -14,43 +19,9 @@ pipeline {
             }
         }
         
-        stage('Set up JDK 17') {
-            steps {
-                script {
-                    def jdkHome = tool name: 'JDK 17', type: 'jdk'
-                    env.JAVA_HOME = jdkHome
-                    sh "${jdkHome}/bin/java -version"
-                }
-            }
-        }
-
-        stage('Set up Maven 3.9.9') {
-            steps {
-                script {
-                    def jdkHome = tool name: 'maven'
-                }
-            }
-        }
-
-        stage('Set up Docker') {
-            steps {
-                script {
-                    def jdkHome = tool name: 'docker'
-                }
-            }
-        }
-
-        // stage('Cache Maven dependencies') {
-        //     steps {
-        //         cache(path: '.m2/repository', key: 'maven-deps') {
-        //             sh 'mvn dependency:go-offline'
-        //         }
-        //     }
-        // }
-        
         stage('Build the project') {
             steps {
-                sh 'mvn clean package -DskipTests -DskipCompile'
+                sh 'mvn clean package -DskipTests'
             }
         }
         
@@ -75,7 +46,7 @@ pipeline {
         stage('Build and Push Docker image') {
             steps {
                 script {
-                    def dockerImage = docker.build("carlgeralz/challenge-booking-room:latest")
+                    def dockerImage = docker.build("carlgeralz/challenge-booking-room:${env.BUILD_NUMBER}")
                     docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
                         dockerImage.push()
                         dockerImage.push('latest')
