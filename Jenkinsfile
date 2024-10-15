@@ -57,7 +57,10 @@ pipeline {
 
         stage('Build Docker image') {
             steps {
-                sh 'docker build -t challenge-booking-room:latest .'
+                script {
+                def docker = docker.image('carlgeralz/challenge-booking-room:latest')
+                docker.pull()
+                }
             }
         }
 
