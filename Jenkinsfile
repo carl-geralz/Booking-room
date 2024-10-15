@@ -2,6 +2,15 @@ pipeline {
     agent any
 
     stages {
+
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    sh 'sudo apt update && sudo apt install -y zip unzip'
+                }
+            }
+        }
+
         stage('Install SDKMAN') {
             steps {
                 script {
