@@ -2,11 +2,9 @@
 #     apt-get remove -y $pkg 
 # done
 
-# apt-get update
+# usermod -aG docker root
 
-# apt-get install -y psmisc fuse-overlayfs kmod linux-headers-generic
-
-# modprobe overlay
+# usermod -aG docker jenkins
 
 # umount -f /var/run/docker.sock
 

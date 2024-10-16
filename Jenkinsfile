@@ -38,7 +38,6 @@ pipeline {
                         postgres:14
                     """
                     
-                    // Wait for PostgreSQL to be ready
                     sh 'docker exec postgres-container pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -t 30'
                 }
             }
