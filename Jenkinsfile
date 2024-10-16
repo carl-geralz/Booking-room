@@ -25,11 +25,19 @@ pipeline {
                 sh 'mvn clean package -DskipTests'
             }
         }
-        
+
+        stage('Run Docker') {
+            steps {
+                sh 'dockerd &'
+                sh 'docker ps'
+            }
+        }
+
         stage('Start PostgreSQL container') {
             steps {
                 script {
                     sh """
+                    dockerd & && \
                     docker run -d --name postgres-container \
                         -e POSTGRES_USER=${POSTGRES_USER} \
                         -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
@@ -47,6 +55,7 @@ pipeline {
         stage('Build and Push Docker image') {
             steps {
                 script {
+                    sh 'dockerd &'
                     def dockerImage = docker.build("carlgeralz/challenge-booking-room:${env.BUILD_NUMBER}")
                     docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
                         dockerImage.push()
@@ -61,7 +70,7 @@ pipeline {
                 branch 'devops'
             }
             steps {
-                sh 'docker-compose -f docker-compose.yml up -d --build'
+                sh 'dockerd & && docker-compose -f docker-compose.yml up -d --build'
             }
         }
     }
