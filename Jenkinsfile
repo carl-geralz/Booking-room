@@ -21,63 +21,27 @@ pipeline {
             }
         }
 
-        stage('Build the project') {
+        stage('Build') {
             steps {
-                sh 'mvn dependency:go-offline && mvn package -DskipTests -DskipCompile'
+                sh 'mvn dependency:go-offline && mvn clean install -DskipTests'
             }
         }
 
-        // stage('Start PostgreSQL container') {
-        //     steps {
-        //         script {
-        //             sh """
-        //             docker run -d --name postgres-container \
-        //                 -e POSTGRES_USER=${POSTGRES_USER} \
-        //                 -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
-        //                 -e POSTGRES_DB=${POSTGRES_DB} \
-        //                 -p 5432:5432 \
-        //                 postgres:14
-        //             """
-                    
-        //             sh 'docker exec postgres-container pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -t 30'
-        //         }
-        //     }
-        // }
-        
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
 
-        stage('Build Docker image using DinD') {
-            agent {
-                docker {
-                    image 'docker:27.3.1-dind' // This pulls the Docker-in-Docker image
-                    args '--privileged' // This allows Docker to run within Docker
-                }
-            }
+        stage('Deploy') {
             steps {
-                script {
-                    def dockerImage = docker.build("carlgeralz/challenge-booking-room:${env.BUILD_NUMBER}")
-                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-                        dockerImage.push()
-                        dockerImage.push('latest')
-                    }
-                }
+                sh 'mvn package -DskipTests -DskipCompile'
             }
         }
-        
-        stage('Deploy with Docker Compose') {
-            when {
-                branch 'devops'
-            }
-            steps {
-                sh 'docker-compose -f docker-compose.yml up -d --build'
-            }
-        }
-    }
 
     post {
         always {
             cleanWs()
-            // sh 'docker stop postgres-container || true'
-            // sh 'docker rm postgres-container || true'
         }
     }
 }
