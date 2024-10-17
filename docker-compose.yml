@@ -325,6 +325,9 @@ services:
     volumes:
       - ./nexus:/nexus-data
     restart: unless-stopped
+    networks:
+      - jenkins
+      - app-network
 
 networks:
   app-network:
