@@ -8,7 +8,6 @@ pipeline {
     }
 
     tools {
-
     }
 
     stages {
@@ -36,11 +35,11 @@ pipeline {
                 sh 'mvn package -DskipTests -DskipCompile'
             }
         }
+    }   
 
     post {
         always {
             cleanWs()
         }
     }
-}
 }
