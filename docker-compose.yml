@@ -69,24 +69,24 @@ services:
     expose:
       - 5432
 
-  spring-zrok:
-    image: openziti/zrok
-    restart: "no"
-    volumes:
-      - $HOME/.zrok:/.zrok
-    environment:
-      PFXLOG_NO_JSON: "true"
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        zrok enable RBgZVgsh5nNn &&
-        zrok share public http://spring-app:8081 --headless
-    container_name: spring-zrok
-    depends_on:
-      - spring-app
-    networks:
-      - app-network
+  # spring-zrok:
+  #   image: openziti/zrok
+  #   restart: "no"
+  #   volumes:
+  #     - $HOME/.zrok:/.zrok
+  #   environment:
+  #     PFXLOG_NO_JSON: "true"
+  #   entrypoint:
+  #     - /bin/sh
+  #     - -c
+  #     - |
+  #       zrok enable RBgZVgsh5nNn &&
+  #       zrok share public http://spring-app:8081 --headless
+  #   container_name: spring-zrok
+  #   depends_on:
+  #     - spring-app
+  #   networks:
+  #     - app-network
 
   jenkins-docker:
     image: docker:dind
