@@ -8,9 +8,7 @@ pipeline {
     }
 
     tools {
-        jdk 'JDK 17'
-        maven 'maven'
-        dockerTool 'docker'
+        
     }
 
     stages {

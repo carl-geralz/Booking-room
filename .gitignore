@@ -43,3 +43,6 @@ data/
 
 # Secrets
 .env
+
+# Nexus Repository
+nexus/
