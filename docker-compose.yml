@@ -88,21 +88,21 @@ services:
   #   networks:
   #     - app-network
 
-  jenkins-docker:
-    image: docker:dind
-    container_name: jenkins-docker
-    privileged: true
-    networks:
-      jenkins:
-        aliases:
-          - docker
-    environment:
-      DOCKER_TLS_CERTDIR: /certs
-    volumes:
-      - jenkins-docker-certs:/certs/client
-      - jenkins-data:/var/jenkins_home
-    ports:
-      - "2376:2376"
+  # jenkins-docker:
+  #   image: docker:dind
+  #   container_name: jenkins-docker
+  #   privileged: true
+  #   networks:
+  #     jenkins:
+  #       aliases:
+  #         - docker
+  #   environment:
+  #     DOCKER_TLS_CERTDIR: /certs
+  #   volumes:
+  #     - jenkins-docker-certs:/certs/client
+  #     - jenkins-data:/var/jenkins_home
+  #   ports:
+  #     - "2376:2376"
 
   jenkins:
     build:
@@ -113,17 +113,18 @@ services:
     restart: on-failure
     networks:
       - jenkins
-    environment:
-      DOCKER_HOST: tcp://docker:2376
-      DOCKER_CERT_PATH: /certs/client 
-      DOCKER_TLS_VERIFY: 1
+    # environment:
+    #   DOCKER_CERT_PATH: /certs/client 
+    #   DOCKER_TLS_VERIFY: 1
+    #   DOCKER_TLS_CERTDIR: /certs
     ports:
+      - "2376:2376"
       - "8080:8080"  
       - "50000:50000" 
     volumes:
-      - jenkins-data:/var/jenkins_home 
-      - jenkins-docker-certs:/certs/client:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+      - jenkins-docker-certs:/certs/client
+      - jenkins-data:/var/jenkins_home
+      # - /var/run/docker.sock:/var/run/docker.sock
 
   # jenkins-zrok:
   #   image: openziti/zrok
