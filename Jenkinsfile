@@ -7,8 +7,8 @@ pipeline {
         POSTGRES_DB = 'challengebookingroom_db'
     }
 
-    tools {
-    }
+    // tools {
+    // }
 
     stages {
         stage('Checkout repository') {
