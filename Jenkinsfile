@@ -8,7 +8,7 @@ pipeline {
     }
 
     tools {
-        
+
     }
 
     stages {
@@ -42,4 +42,5 @@ pipeline {
             cleanWs()
         }
     }
+}
 }
