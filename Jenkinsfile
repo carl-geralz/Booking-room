@@ -1,16 +1,19 @@
 pipeline {
     agent any
 
-    environment {
-        POSTGRES_USER = 'postgres'
-        POSTGRES_PASSWORD = 'postgres'
-        POSTGRES_DB = 'challengebookingroom_db'
-    }
-
-    // tools {
-    // }
-
     stages {
+        stage('Load env') {
+            steps {
+                script {
+                    withEnv(["$(cat .env | xargs)"]) {
+                        sh 'echo $DOCKER_PASSWORD'
+                        sh 'echo $DOCKER_USERNAME'
+                        sh 'echo $CODECOV_TOKEN'
+                    }
+                }
+            }
+        }
+        
         stage('Checkout repository') {
             steps {
                 cleanWs()
@@ -18,21 +21,39 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Login Docker') {
             steps {
-                sh 'mvn dependency:go-offline && mvn clean install -DskipTests -DskipCompile'
+                sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
             }
         }
 
-        // stage('Test') {
-        //     steps {
-        //         sh 'mvn test'
-        //     }
-        // }
+        stage('Pull Java 17 Docker Image') {
+            steps {
+                sh 'docker pull openjdk:17-ea-17-jdk-slim'
+            }
+        }
 
-        stage('Deploy') {
+        stage('Resolve') {
+            steps {
+                sh 'mvn dependency:go-offline'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -DskipTests -DskipCompile'
+            }
+        }
+
+        stage('Pack') {
             steps {
                 sh 'mvn package -DskipTests -DskipCompile'
+            }
+        }
+
+        stage('Deploy with Docker') {
+            steps {
+                sh 'mvn deploy jib:build -P deploy-docker'
             }
         }
     }   
@@ -40,6 +61,9 @@ pipeline {
     post {
         always {
             cleanWs()
+        }
+        script {
+            sh 'bash <(curl -s https://codecov.io/bash)'
         }
     }
 }
